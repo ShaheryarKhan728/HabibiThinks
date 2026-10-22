@@ -1,0 +1,13 @@
+{
+  "name": "habibi-thinks-hub",
+  "version": "0.1.0",
+  "description": "The one app you install for Habibi Thinks.",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}
