@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// Applies the word list from shared/verbs.json to Claude Code.
-// Claude Code has a built-in settings field for this (spinnerVerbs), shared
-// by the CLI, the VS Code extension and the Claude Desktop Code tab, so this
-// just edits that one settings file. No guessing, no patching of app files.
+// Applies the word list from shared/verbs.json to Claude Code in the
+// terminal, through its built-in settings field (spinnerVerbs). No guessing,
+// no patching of app files. The VS Code extension has its own setting — see
+// vscode.js.
 
 const fs = require("fs");
 const os = require("os");

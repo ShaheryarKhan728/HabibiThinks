@@ -1,21 +1,25 @@
 # patchers
 
-Small scripts that apply the custom words from `shared/verbs.json` into each Claude platform.
+Small scripts that apply the custom words from `shared/verbs.json` into each Claude platform. Neither touches any app files — they only write documented settings, so they keep working across app updates.
 
-## claude-code.js
+## claude-code.js — Claude Code in the terminal
 
-Covers the Claude Code CLI, the Claude Code VS Code extension, and the Code tab in the Claude Desktop app — they all read the same settings file.
-
-Claude Code has a built-in, documented setting for this: `spinnerVerbs` inside `~/.claude/settings.json` (or inside `CLAUDE_CONFIG_DIR` if you set that). This script just writes that setting. It does not touch any app files, so it never breaks on a Claude Code update.
-
-Run it directly:
+Writes `spinnerVerbs` into `~/.claude/settings.json` (or into `CLAUDE_CONFIG_DIR` if you set that), keeping any other settings already there untouched.
 
 ```
 node patchers/claude-code.js
 ```
 
-It reads `shared/verbs.json` and writes `{ "spinnerVerbs": { "mode": "replace", "verbs": [...] } }` into the settings file, keeping any other settings already there untouched.
+## vscode.js — the Claude Code extension in VS Code
 
-## Claude Desktop chat tab
+The VS Code extension ignores `~/.claude/settings.json` for this. It reads its own VS Code setting, `claudeCode.spinnerVerbs`, so this script writes that into VS Code's user `settings.json`. VS Code picks up the change without a restart.
 
-Not supported. The chat tab is claude.ai's web page running inside the app, and the app blocks all outside code: no debugger, no `NODE_OPTIONS`, its files are integrity-checked on launch, and on Windows it lives in the protected `WindowsApps` folder. Any change would break the app or be undone on its next update.
+```
+node patchers/vscode.js
+```
+
+VS Code allows comments in its settings file. If yours has comments or trailing commas, the script leaves the file untouched (rewriting it would delete them) and tells you to add the setting by hand.
+
+## Claude Desktop
+
+Not supported — neither the chat tab nor the Code tab. Both are claude.ai's web page running inside the app, which shows Claude's own thinking labels and ignores `spinnerVerbs`. And the app blocks all outside code: no debugger, no `NODE_OPTIONS`, its files are integrity-checked on launch, and on Windows it lives in the protected `WindowsApps` folder. Any change would break the app or be undone on its next update.
