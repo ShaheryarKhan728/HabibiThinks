@@ -1,9 +1,8 @@
-// Watches the claude.ai page for its loading word and swaps it for one of
-// ours. We don't key off Claude's CSS class names (those change often and
-// we can't see the live page from here to confirm them) — instead we match
-// text that is exactly one capitalised "-ing" word plus dots, like
-// "Pondering…". A whole sentence ending in "..." is someone's chat text, not
-// a loading word, so it's left alone.
+// Changes the short status words claude.ai shows while Claude thinks, like
+// "Weighing" or "Revisiting", to a Habibi phrase, and "Thought for 3m 25s"
+// to "Habibi thought for 3m 25s". Only text inside claude.ai's thinking
+// status block (data-cds="TurnStatus") is touched — the full-sentence
+// thinking summaries and all chat text are left alone.
 
 let words = DEFAULT_WORDS;
 
@@ -23,24 +22,32 @@ function pickWord() {
   return words[Math.floor(Math.random() * words.length)];
 }
 
-const SPINNER_PATTERN = /^[A-Z][a-z-]*ing(\.{3}|…)$/;
+const STATUS_BLOCK = '[data-cds="TurnStatus"]';
+const SHORT_LABEL = /^[A-Z][a-z-]*ing(\.{3}|…)?$/;
+const THOUGHT_FOR = /^Thought for (.+)$/;
 
 function tryReplace(node) {
   if (!node || node.nodeType !== Node.TEXT_NODE) return;
+  const parent = node.parentElement;
+  if (!parent || !parent.closest(STATUS_BLOCK)) return;
+
   const text = node.textContent.trim();
-  if (!text) return;
 
-  const match = text.match(SPINNER_PATTERN);
-  if (!match) return;
+  const thought = text.match(THOUGHT_FOR);
+  if (thought) {
+    node.textContent = `Habibi thought for ${thought[1]}`;
+    return;
+  }
 
-  const suffix = match[1];
-  const core = text.slice(0, text.length - suffix.length).trim();
+  const label = text.match(SHORT_LABEL);
+  if (!label) return;
 
-  // Already one of ours — leave it, so we don't re-randomize on every
-  // unrelated DOM update and flicker the word mid-display.
+  // A user's own single word could look like a status word — leave it, so we
+  // don't keep re-picking and flicker.
+  const core = text.replace(/(\.{3}|…)$/, "");
   if (words.includes(core)) return;
 
-  node.textContent = `${pickWord()}${suffix}`;
+  node.textContent = `${pickWord()}${label[1] || "…"}`;
 }
 
 function walk(node) {
@@ -61,6 +68,9 @@ const observer = new MutationObserver((mutations) => {
   }
 });
 
+// Change labels already on the page (e.g. older answers in this chat), then
+// keep watching for new ones.
+walk(document.body);
 observer.observe(document.body, {
   childList: true,
   subtree: true,
