@@ -2,14 +2,16 @@
 
 // Applies the word list from shared/verbs.json to Claude Code.
 // Claude Code has a built-in settings field for this (spinnerVerbs), shared
-// by both the CLI and the VS Code extension, so this just edits that one
-// settings file. No guessing, no patching of app files.
+// by the CLI, the VS Code extension and the Claude Desktop Code tab, so this
+// just edits that one settings file. No guessing, no patching of app files.
 
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const SETTINGS_PATH = path.join(os.homedir(), ".claude", "settings.json");
+// Claude Code keeps its settings in CLAUDE_CONFIG_DIR when set, else ~/.claude.
+const CLAUDE_DIR = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+const SETTINGS_PATH = path.join(CLAUDE_DIR, "settings.json");
 const VERBS_PATH = path.join(__dirname, "..", "shared", "verbs.json");
 
 function readJson(filePath, fallback) {
