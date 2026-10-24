@@ -12,7 +12,7 @@ node patchers/claude-code.js
 
 ## vscode.js — the Claude Code extension in VS Code
 
-The VS Code extension ignores `~/.claude/settings.json` for this. It reads its own VS Code setting, `claudeCode.spinnerVerbs`, so this script writes that into VS Code's user `settings.json`. VS Code picks up the change without a restart.
+The VS Code extension ignores `~/.claude/settings.json` for this. It reads its own VS Code setting, `claudeCode.spinnerVerbs`, so this script writes that into VS Code's user `settings.json` (found the same way VS Code finds it, including `VSCODE_APPDATA` if you set that). VS Code picks up the change without a restart.
 
 ```
 node patchers/vscode.js

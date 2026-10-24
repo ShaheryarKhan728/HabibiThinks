@@ -11,13 +11,16 @@ const path = require("path");
 
 const VERBS_PATH = path.join(__dirname, "..", "shared", "verbs.json");
 
+// Same lookup VS Code does: VSCODE_APPDATA if set, else the OS's app data folder.
+function vscodeAppData() {
+  if (process.env.VSCODE_APPDATA) return process.env.VSCODE_APPDATA;
+  if (process.platform === "win32") return process.env.APPDATA;
+  if (process.platform === "darwin") return path.join(os.homedir(), "Library", "Application Support");
+  return process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
+}
+
 function vscodeUserDir() {
-  if (process.platform === "win32") return path.join(process.env.APPDATA, "Code", "User");
-  if (process.platform === "darwin") {
-    return path.join(os.homedir(), "Library", "Application Support", "Code", "User");
-  }
-  const config = process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config");
-  return path.join(config, "Code", "User");
+  return path.join(vscodeAppData(), "Code", "User");
 }
 
 function main() {
