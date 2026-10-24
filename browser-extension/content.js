@@ -1,7 +1,9 @@
 // Watches the claude.ai page for its loading word and swaps it for one of
 // ours. We don't key off Claude's CSS class names (those change often and
 // we can't see the live page from here to confirm them) — instead we match
-// any short text that looks like a loading word: "Word..." or "Word…".
+// text that is exactly one capitalised "-ing" word plus dots, like
+// "Pondering…". A whole sentence ending in "..." is someone's chat text, not
+// a loading word, so it's left alone.
 
 let words = DEFAULT_WORDS;
 
@@ -21,7 +23,7 @@ function pickWord() {
   return words[Math.floor(Math.random() * words.length)];
 }
 
-const SPINNER_PATTERN = /^[A-Za-z][A-Za-z\- ]*?(\.{3}|…)$/;
+const SPINNER_PATTERN = /^[A-Z][a-z-]*ing(\.{3}|…)$/;
 
 function tryReplace(node) {
   if (!node || node.nodeType !== Node.TEXT_NODE) return;
