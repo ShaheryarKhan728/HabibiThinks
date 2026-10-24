@@ -6,7 +6,7 @@ const { execFile } = require("child_process");
 
 const VERBS_PATH = path.join(__dirname, "..", "shared", "verbs.json");
 const PATCHER_PATH = path.join(__dirname, "..", "patchers", "claude-code.js");
-const CLAUDE_DIR = path.join(os.homedir(), ".claude");
+const CLAUDE_DIR = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
 
 // Placeholder until the extension is actually published to a store.
 const EXTENSION_STORE_URL = "https://github.com/ShaheryarKhan728/HabibiThinks";
