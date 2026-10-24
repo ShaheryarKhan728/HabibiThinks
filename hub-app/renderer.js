@@ -3,6 +3,7 @@ async function init() {
   document.getElementById("status-claude-code").textContent = status.claudeCode
     ? "found"
     : "not found";
+  document.getElementById("status-vscode").textContent = status.vscode ? "found" : "not found";
 
   const verbs = await window.habibi.getVerbs();
   document.getElementById("verbs").value = verbs.join("\n");

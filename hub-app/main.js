@@ -5,8 +5,11 @@ const os = require("os");
 const { execFile } = require("child_process");
 
 const VERBS_PATH = path.join(__dirname, "..", "shared", "verbs.json");
-const PATCHER_PATH = path.join(__dirname, "..", "patchers", "claude-code.js");
+const PATCHERS = ["claude-code.js", "vscode.js"].map((name) =>
+  path.join(__dirname, "..", "patchers", name)
+);
 const CLAUDE_DIR = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+const VSCODE_EXTENSIONS_DIR = path.join(os.homedir(), ".vscode", "extensions");
 
 // Placeholder until the extension is actually published to a store.
 const EXTENSION_STORE_URL = "https://github.com/ShaheryarKhan728/HabibiThinks";
@@ -34,9 +37,15 @@ function readVerbs() {
   return data.verbs || [];
 }
 
+function hasVSCodeExtension() {
+  if (!fs.existsSync(VSCODE_EXTENSIONS_DIR)) return false;
+  return fs.readdirSync(VSCODE_EXTENSIONS_DIR).some((name) => name.startsWith("anthropic.claude-code"));
+}
+
 ipcMain.handle("get-status", () => {
   return {
     claudeCode: fs.existsSync(CLAUDE_DIR),
+    vscode: hasVSCodeExtension(),
   };
 });
 
@@ -47,9 +56,9 @@ ipcMain.handle("save-verbs", (_event, verbs) => {
   return true;
 });
 
-ipcMain.handle("resync", () => {
+function runPatcher(patcherPath) {
   return new Promise((resolve) => {
-    execFile("node", [PATCHER_PATH], (error, stdout, stderr) => {
+    execFile("node", [patcherPath], (error, stdout, stderr) => {
       if (error) {
         resolve({ ok: false, message: (stderr || error.message).trim() });
       } else {
@@ -57,6 +66,17 @@ ipcMain.handle("resync", () => {
       }
     });
   });
+}
+
+ipcMain.handle("resync", async () => {
+  const results = [];
+  for (const patcher of PATCHERS) {
+    results.push(await runPatcher(patcher));
+  }
+  return {
+    ok: results.every((result) => result.ok),
+    message: results.map((result) => result.message).join("\n"),
+  };
 });
 
 ipcMain.handle("open-extension-page", () => {

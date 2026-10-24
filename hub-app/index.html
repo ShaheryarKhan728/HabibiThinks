@@ -9,19 +9,20 @@
       .status div { margin-bottom: 4px; }
       textarea { width: 100%; height: 160px; font-family: monospace; box-sizing: border-box; }
       button { padding: 8px 16px; margin-top: 8px; margin-right: 8px; }
-      #resync-result { margin-top: 8px; font-size: 14px; }
+      #resync-result { margin-top: 8px; font-size: 14px; white-space: pre-line; }
     </style>
   </head>
   <body>
     <h1>Habibi Thinks</h1>
 
     <div class="status">
-      <div>Claude Code (CLI, VS Code, Desktop Code tab): <span id="status-claude-code">checking...</span></div>
-      <div>Claude Desktop chat: <span>not supported (the app is locked)</span></div>
+      <div>Claude Code (terminal): <span id="status-claude-code">checking...</span></div>
+      <div>Claude Code (VS Code): <span id="status-vscode">checking...</span></div>
+      <div>Claude Desktop: <span>not supported (the app is locked)</span></div>
     </div>
 
     <h3>Your words</h3>
-    <p>One word per line.</p>
+    <p>One phrase per line.</p>
     <textarea id="verbs"></textarea>
     <br />
     <button id="save">Save</button>
