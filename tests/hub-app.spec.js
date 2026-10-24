@@ -10,18 +10,22 @@ const VERBS_PATH = path.join(ROOT, "shared", "verbs.json");
 let app;
 let window;
 let claudeDir;
+let vscodeAppData;
 let originalVerbs;
 
 test.beforeAll(async () => {
   originalVerbs = fs.readFileSync(VERBS_PATH, "utf8");
 
-  // A throwaway Claude settings folder, so the test never touches the real one.
+  // Throwaway Claude and VS Code settings folders, so the test never touches
+  // the real ones.
   claudeDir = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-claude-"));
+  vscodeAppData = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-vscode-"));
+  fs.mkdirSync(path.join(vscodeAppData, "Code", "User"), { recursive: true });
 
   app = await _electron.launch({
     executablePath: require(path.join(HUB_APP, "node_modules", "electron")),
     args: [HUB_APP],
-    env: { ...process.env, CLAUDE_CONFIG_DIR: claudeDir },
+    env: { ...process.env, CLAUDE_CONFIG_DIR: claudeDir, VSCODE_APPDATA: vscodeAppData },
   });
   window = await app.firstWindow();
 });
@@ -30,10 +34,17 @@ test.afterAll(async () => {
   if (app) await app.close();
   fs.writeFileSync(VERBS_PATH, originalVerbs);
   fs.rmSync(claudeDir, { recursive: true, force: true });
+  fs.rmSync(vscodeAppData, { recursive: true, force: true });
 });
 
 test("shows Claude Code as found", async () => {
   await expect(window.locator("#status-claude-code")).toHaveText("found");
+});
+
+test("shows a VS Code status", async () => {
+  // Depends on whether this machine has the VS Code extension, so just check
+  // it was filled in.
+  await expect(window.locator("#status-vscode")).toHaveText(/^(found|not found)$/);
 });
 
 test("shows the saved words", async () => {
@@ -50,17 +61,19 @@ test("Save writes the words to shared/verbs.json", async () => {
     .toEqual(["Habibi wait", "Test phrase habibi"]);
 });
 
-test("Resync writes the words into Claude Code settings", async () => {
+test("Resync writes the words into Claude Code and VS Code settings", async () => {
   await window.locator("#resync").click();
   await expect(window.locator("#resync-result")).toContainText("Done: Applied 2 word(s)");
 
-  const settings = JSON.parse(
-    fs.readFileSync(path.join(claudeDir, "settings.json"), "utf8")
+  const expected = { mode: "replace", verbs: ["Habibi wait", "Test phrase habibi"] };
+
+  const claude = JSON.parse(fs.readFileSync(path.join(claudeDir, "settings.json"), "utf8"));
+  expect(claude.spinnerVerbs).toEqual(expected);
+
+  const vscode = JSON.parse(
+    fs.readFileSync(path.join(vscodeAppData, "Code", "User", "settings.json"), "utf8")
   );
-  expect(settings.spinnerVerbs).toEqual({
-    mode: "replace",
-    verbs: ["Habibi wait", "Test phrase habibi"],
-  });
+  expect(vscode["claudeCode.spinnerVerbs"]).toEqual(expected);
 });
 
 test("Install Browser Extension opens a web page", async () => {
