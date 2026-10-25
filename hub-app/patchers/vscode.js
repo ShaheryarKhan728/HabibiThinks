@@ -51,6 +51,10 @@ function isInstalled() {
   return fs.readdirSync(dir).some((name) => name.startsWith("anthropic.claude-code"));
 }
 
+function isOn() {
+  return SETTING in readSettings(settingsPath());
+}
+
 function turnOn(phrases) {
   const file = settingsPath();
   const settings = readSettings(file);
@@ -66,4 +70,4 @@ function turnOff() {
   writeSettings(file, settings);
 }
 
-module.exports = { isInstalled, turnOn, turnOff };
+module.exports = { isInstalled, isOn, turnOn, turnOff };

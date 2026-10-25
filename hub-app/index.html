@@ -1,30 +1,145 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>Habibi Thinks</title>
     <style>
-      body { font-family: sans-serif; padding: 20px; }
-      h1 { margin-top: 0; }
-      .status div { margin-bottom: 4px; }
-      button { padding: 8px 16px; margin-top: 8px; margin-right: 8px; }
-      #result { margin-top: 12px; font-size: 14px; white-space: pre-line; }
+      @font-face {
+        font-family: "Tajawal";
+        src: url("fonts/Tajawal-Regular.ttf");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Tajawal";
+        src: url("fonts/Tajawal-Bold.ttf");
+        font-weight: 700;
+      }
+
+      :root {
+        --sand: #f5ebdd;
+        --card: #fffbf5;
+        --coffee: #3b2a1a;
+        --gold: #c9a227;
+        --gold-dark: #8a6d12;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Tajawal", sans-serif;
+        color: var(--coffee);
+        background-color: var(--sand);
+        /* A faint eight-point star pattern. */
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><g fill='none' stroke='%23C9A227' stroke-opacity='0.2' stroke-width='1.5'><rect x='20' y='20' width='24' height='24'/><rect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/></g></svg>");
+        user-select: none;
+      }
+
+      .card {
+        width: 340px;
+        padding: 28px 28px 24px;
+        text-align: center;
+        background: var(--card);
+        border: 1px solid rgba(201, 162, 39, 0.35);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(59, 42, 26, 0.12);
+      }
+
+      .logo { width: 96px; height: 96px; }
+
+      h1 { margin: 4px 0 8px; font-size: 30px; font-weight: 700; }
+
+      .tagline { margin: 0; font-size: 16px; }
+      .tagline-ar { margin: 4px 0 0; font-size: 19px; color: var(--gold-dark); }
+
+      .divider {
+        width: 60px;
+        height: 2px;
+        margin: 22px auto;
+        background: var(--gold);
+        border-radius: 1px;
+      }
+
+      .switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .switch { position: relative; width: 72px; height: 40px; cursor: pointer; }
+      .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: #d9cbb4;
+        border-radius: 20px;
+        transition: background 0.2s;
+      }
+      .slider::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(59, 42, 26, 0.25);
+        transition: transform 0.2s;
+      }
+      .switch input:checked + .slider { background: var(--gold); }
+      .switch input:checked + .slider::before { transform: translateX(32px); }
+      .switch input:focus-visible + .slider { outline: 2px solid var(--gold-dark); outline-offset: 2px; }
+
+      #state { width: 36px; text-align: start; color: var(--gold-dark); }
+
+      #message {
+        min-height: 48px;
+        margin: 16px 0 8px;
+        font-size: 16px;
+        font-weight: 700;
+        white-space: pre-line;
+      }
+
+      .link-button {
+        padding: 10px 20px;
+        font-family: inherit;
+        font-size: 15px;
+        color: var(--coffee);
+        background: transparent;
+        border: 1.5px solid var(--gold);
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .link-button:hover { background: rgba(201, 162, 39, 0.12); }
     </style>
   </head>
   <body>
-    <h1>Habibi Thinks</h1>
+    <main class="card">
+      <img class="logo" src="logo.svg" alt="" />
+      <h1>Habibi Thinks</h1>
+      <p class="tagline">Yallah, let Claude think like a habibi.</p>
+      <p class="tagline-ar" lang="ar" dir="rtl">يلّا، خلّ كلود يفكّر على طريقة حبيبي</p>
 
-    <div class="status">
-      <div>Claude Code (terminal): <span id="status-claude-code">checking...</span></div>
-      <div>Claude Code (VS Code): <span id="status-vscode">checking...</span></div>
-      <div>Claude Desktop: <span>not supported (the app is locked)</span></div>
-    </div>
+      <div class="divider"></div>
 
-    <button id="turn-on">Turn on Habibi Thinks</button>
-    <button id="turn-off">Turn off</button>
-    <br />
-    <button id="install-extension">Install Browser Extension</button>
-    <div id="result"></div>
+      <div class="switch-row">
+        <label class="switch">
+          <input type="checkbox" id="toggle" aria-label="Habibi Thinks" />
+          <span class="slider"></span>
+        </label>
+        <span id="state">Off</span>
+      </div>
+
+      <div id="message"></div>
+
+      <button class="link-button" id="install-extension">Install Browser Extension</button>
+    </main>
 
     <script src="renderer.js"></script>
   </body>

@@ -1,17 +1,22 @@
-async function init() {
-  const status = await window.habibi.getStatus();
-  document.getElementById("status-claude-code").textContent = status.claudeCode ? "found" : "not found";
-  document.getElementById("status-vscode").textContent = status.vscode ? "found" : "not found";
+const toggle = document.getElementById("toggle");
+const stateText = document.getElementById("state");
+const message = document.getElementById("message");
+
+function showState(on) {
+  toggle.checked = on;
+  stateText.textContent = on ? "On" : "Off";
 }
 
-const result = document.getElementById("result");
+async function init() {
+  showState(await window.habibi.isOn());
+}
 
-document.getElementById("turn-on").addEventListener("click", async () => {
-  result.textContent = await window.habibi.turnOn();
-});
-
-document.getElementById("turn-off").addEventListener("click", async () => {
-  result.textContent = await window.habibi.turnOff();
+toggle.addEventListener("change", async () => {
+  const on = toggle.checked;
+  const problems = on ? await window.habibi.turnOn() : await window.habibi.turnOff();
+  showState(on);
+  const text = on ? "Yallah! Habibi Thinks is on." : "Habibi Thinks is off.";
+  message.textContent = [text, ...problems].join("\n");
 });
 
 document.getElementById("install-extension").addEventListener("click", () => {

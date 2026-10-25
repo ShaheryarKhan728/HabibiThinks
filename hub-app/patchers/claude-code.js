@@ -30,6 +30,10 @@ function isInstalled() {
   return fs.existsSync(claudeDir());
 }
 
+function isOn() {
+  return "spinnerVerbs" in readSettings(settingsPath());
+}
+
 function turnOn(phrases) {
   const file = settingsPath();
   const settings = readSettings(file);
@@ -45,4 +49,4 @@ function turnOff() {
   writeSettings(file, settings);
 }
 
-module.exports = { isInstalled, turnOn, turnOff };
+module.exports = { isInstalled, isOn, turnOn, turnOff };

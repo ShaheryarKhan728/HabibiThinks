@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Thinking bubbles rising from the spout -->
+  <circle cx="17" cy="33" r="3.5" fill="#3B2A1A"/>
+  <circle cx="23" cy="21" r="4.5" fill="#3B2A1A"/>
+  <circle cx="34" cy="11" r="5.5" fill="#3B2A1A"/>
+
+  <!-- Handle -->
+  <path d="M84 54 C104 56 104 86 88 94" fill="none" stroke="#8A6D12" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Spout -->
+  <path d="M42 84 C26 78 18 62 13 44 L20 43 C25 58 33 70 46 76 Z" fill="#B08D1E"/>
+
+  <!-- Body -->
+  <path d="M44 104 C28 99 28 78 46 70 L82 70 C100 78 100 99 84 104 Z" fill="#C9A227"/>
+  <path d="M50 70 L54 50 L74 50 L78 70 Z" fill="#C9A227"/>
+  <path d="M50 50 C48 46 52 42 58 42 L70 42 C76 42 80 46 78 50 Z" fill="#B08D1E"/>
+
+  <!-- Bands -->
+  <rect x="47" y="68" width="34" height="4" rx="2" fill="#8A6D12"/>
+  <rect x="52" y="48" width="24" height="3" rx="1.5" fill="#8A6D12"/>
+
+  <!-- Base -->
+  <path d="M42 102 L86 102 L90 112 L38 112 Z" fill="#8A6D12"/>
+
+  <!-- Lid and finial -->
+  <path d="M56 42 C56 31 72 31 72 42 Z" fill="#C9A227"/>
+  <circle cx="64" cy="31.5" r="3.5" fill="#8A6D12"/>
+</svg>
