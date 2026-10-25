@@ -20,11 +20,14 @@ npx playwright install chromium
 npm test
 ```
 
+They also run automatically on Windows and Mac on every push, through GitHub Actions (`.github/workflows/tests.yml`).
+
 ## What they check
 
-- **hub-app.spec.js** — opens the real hub app and clicks its buttons: status, word list, Save, Resync, and the extension button. It points Claude Code at a throwaway settings folder (`CLAUDE_CONFIG_DIR`), so your real settings are never touched, and puts `shared/verbs.json` back afterwards.
-- **extension.spec.js** — loads the real extension into Chromium and serves a fake claude.ai page, so no login is needed. Checks that loading words get swapped and that normal chat text is left alone.
+- **hub-app.spec.js** — opens the real hub app and clicks its buttons: status, Turn on, Turn off, and the extension button. It points Claude Code and VS Code at throwaway folders (`CLAUDE_CONFIG_DIR`, `VSCODE_APPDATA`, `VSCODE_EXTENSIONS`), so your real settings are never touched. Checks that other settings survive, and that a VS Code settings file with comments is left alone.
+- **extension.spec.js** — loads the real extension into Chromium and serves a fake claude.ai page shaped like the real one, so no login is needed. Checks that status words get swapped and that summaries and chat text are left alone.
+- **phrases.spec.js** — checks the app and the extension use the same phrases.
 
 ## What they can't check
 
-Whether real claude.ai shows its loading word in the shape the extension looks for. That needs a person logged in to claude.ai with the extension loaded.
+Real claude.ai, which needs a login. If claude.ai changes its status block, check it by hand with the extension loaded.

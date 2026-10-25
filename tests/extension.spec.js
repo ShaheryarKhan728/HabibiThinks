@@ -5,7 +5,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const EXTENSION = path.join(ROOT, "browser-extension");
-const { verbs } = JSON.parse(fs.readFileSync(path.join(ROOT, "shared", "verbs.json"), "utf8"));
+const PHRASES = require(path.join(ROOT, "hub-app", "phrases.json"));
 
 // A stand-in for claude.ai, shaped like the real thinking-status block (copied
 // from the live page, trimmed down). The real page needs a login, so we serve
@@ -31,7 +31,7 @@ function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const OUR_PHRASE = new RegExp(`^(${verbs.map(escapeRegex).join("|")})(…|\\.\\.\\.)$`);
+const OUR_PHRASE = new RegExp(`^(${PHRASES.map(escapeRegex).join("|")})(…|\\.\\.\\.)$`);
 
 let context;
 let page;
