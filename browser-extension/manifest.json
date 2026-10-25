@@ -3,6 +3,11 @@
   "name": "Habibi Thinks",
   "version": "0.1.0",
   "description": "Replace Claude's thinking status words on claude.ai with Habibi phrases.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "host_permissions": ["https://claude.ai/*"],
   "content_scripts": [
     {
