@@ -4,27 +4,13 @@
 // status block (data-cds="TurnStatus") is touched — the full-sentence
 // thinking summaries and all chat text are left alone.
 
-let words = DEFAULT_WORDS;
-
-chrome.storage.local.get("verbs", (result) => {
-  if (result.verbs && result.verbs.length > 0) {
-    words = result.verbs;
-  }
-});
-
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.verbs) {
-    words = changes.verbs.newValue;
-  }
-});
-
-function pickWord() {
-  return words[Math.floor(Math.random() * words.length)];
-}
-
 const STATUS_BLOCK = '[data-cds="TurnStatus"]';
 const SHORT_LABEL = /^[A-Z][a-z-]*ing(\.{3}|…)?$/;
 const THOUGHT_FOR = /^Thought for (.+)$/;
+
+function pickPhrase() {
+  return PHRASES[Math.floor(Math.random() * PHRASES.length)];
+}
 
 function tryReplace(node) {
   if (!node || node.nodeType !== Node.TEXT_NODE) return;
@@ -40,14 +26,9 @@ function tryReplace(node) {
   }
 
   const label = text.match(SHORT_LABEL);
-  if (!label) return;
-
-  // A user's own single word could look like a status word — leave it, so we
-  // don't keep re-picking and flicker.
-  const core = text.replace(/(\.{3}|…)$/, "");
-  if (words.includes(core)) return;
-
-  node.textContent = `${pickWord()}${label[1] || "…"}`;
+  if (label) {
+    node.textContent = `${pickPhrase()}${label[1] || "…"}`;
+  }
 }
 
 function walk(node) {

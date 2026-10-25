@@ -2,15 +2,13 @@
   "manifest_version": 3,
   "name": "Habibi Thinks",
   "version": "0.1.0",
-  "description": "Replace Claude's loading words on claude.ai with your own words.",
-  "permissions": ["storage"],
+  "description": "Replace Claude's thinking status words on claude.ai with Habibi phrases.",
   "host_permissions": ["https://claude.ai/*"],
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["words.js", "content.js"],
+      "js": ["phrases.js", "content.js"],
       "run_at": "document_idle"
     }
-  ],
-  "options_page": "options.html"
+  ]
 }
