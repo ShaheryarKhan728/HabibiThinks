@@ -24,7 +24,7 @@ They also run automatically on Windows and Mac on every push, through GitHub Act
 
 ## What they check
 
-- **hub-app.spec.js** — opens the real hub app and clicks its buttons: status, Turn on, Turn off, and the extension button. It points Claude Code and VS Code at throwaway folders (`CLAUDE_CONFIG_DIR`, `VSCODE_APPDATA`, `VSCODE_EXTENSIONS`), so your real settings are never touched. Checks that other settings survive, and that a VS Code settings file with comments is left alone.
+- **hub-app.spec.js** — opens the real hub app and uses it: the on/off switch (including its state after reopening) and the extension button. It points Claude Code and VS Code at throwaway folders (`CLAUDE_CONFIG_DIR`, `VSCODE_APPDATA`, `VSCODE_EXTENSIONS`), so your real settings are never touched. Checks that other settings survive, and that a VS Code settings file with comments is left alone.
 - **extension.spec.js** — loads the real extension into Chromium and serves a fake claude.ai page shaped like the real one, so no login is needed. Checks that status words get swapped and that summaries and chat text are left alone.
 - **phrases.spec.js** — checks the app and the extension use the same phrases.
 

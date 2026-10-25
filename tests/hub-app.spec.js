@@ -15,6 +15,7 @@ let vscodeExtensions;
 const claudeSettings = () => path.join(claudeDir, "settings.json");
 const vscodeSettings = () => path.join(vscodeAppData, "Code", "User", "settings.json");
 const readJson = (file) => JSON.parse(fs.readFileSync(file, "utf8"));
+const flipSwitch = () => window.locator(".switch").click();
 
 test.beforeAll(async () => {
   // Throwaway Claude and VS Code folders, so the test never touches the real
@@ -49,16 +50,15 @@ test.afterAll(async () => {
   }
 });
 
-test("shows Claude Code and VS Code as found", async () => {
-  await expect(window.locator("#status-claude-code")).toHaveText("found");
-  await expect(window.locator("#status-vscode")).toHaveText("found");
+test("starts switched off", async () => {
+  await expect(window.locator("#state")).toHaveText("Off");
+  await expect(window.locator("#toggle")).not.toBeChecked();
 });
 
-test("Turn on writes the phrases and keeps other settings", async () => {
-  await window.locator("#turn-on").click();
-  await expect(window.locator("#result")).toHaveText(
-    "Claude Code (terminal): on\nClaude Code (VS Code): on"
-  );
+test("switching on writes the phrases and keeps other settings", async () => {
+  await flipSwitch();
+  await expect(window.locator("#message")).toHaveText("Yallah! Habibi Thinks is on.");
+  await expect(window.locator("#state")).toHaveText("On");
 
   const expected = { mode: "replace", verbs: PHRASES };
   expect(readJson(claudeSettings())).toEqual({ theme: "dark", spinnerVerbs: expected });
@@ -68,11 +68,16 @@ test("Turn on writes the phrases and keeps other settings", async () => {
   });
 });
 
-test("Turn off removes the phrases and keeps other settings", async () => {
-  await window.locator("#turn-off").click();
-  await expect(window.locator("#result")).toHaveText(
-    "Claude Code (terminal): off\nClaude Code (VS Code): off"
-  );
+test("shows On again when the app reopens", async () => {
+  await window.reload();
+  await expect(window.locator("#state")).toHaveText("On");
+  await expect(window.locator("#toggle")).toBeChecked();
+});
+
+test("switching off removes the phrases and keeps other settings", async () => {
+  await flipSwitch();
+  await expect(window.locator("#message")).toHaveText("Habibi Thinks is off.");
+  await expect(window.locator("#state")).toHaveText("Off");
 
   expect(readJson(claudeSettings())).toEqual({ theme: "dark" });
   expect(readJson(vscodeSettings())).toEqual({ "editor.fontSize": 14 });
@@ -82,8 +87,8 @@ test("leaves a VS Code settings file with comments untouched", async () => {
   const withComments = '{\n  // my comment\n  "editor.fontSize": 14\n}\n';
   fs.writeFileSync(vscodeSettings(), withComments);
 
-  await window.locator("#turn-on").click();
-  await expect(window.locator("#result")).toContainText("Claude Code (VS Code): your VS Code settings file has comments");
+  await flipSwitch();
+  await expect(window.locator("#message")).toContainText("VS Code: your VS Code settings file has comments");
   expect(fs.readFileSync(vscodeSettings(), "utf8")).toBe(withComments);
 });
 
