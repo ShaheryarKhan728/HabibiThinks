@@ -1,0 +1,51 @@
+name: Build installers
+
+# Started by hand from the Actions tab ("Run workflow").
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            app: hub-app/dist/win-unpacked/Habibi Thinks.exe
+          - os: macos-latest
+            app: hub-app/dist/mac-universal/Habibi Thinks.app/Contents/MacOS/Habibi Thinks
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install hub app
+        working-directory: hub-app
+        run: npm ci
+
+      - name: Build installer
+        working-directory: hub-app
+        run: npm run dist -- --publish never
+
+      # Run the hub app tests against the built app, not the source, to prove
+      # the installed app actually starts and works on this system.
+      - name: Install tests
+        working-directory: tests
+        run: npm ci
+
+      - name: Test the built app
+        working-directory: tests
+        run: npx playwright test hub-app.spec.js
+        env:
+          PACKAGED_APP: ${{ github.workspace }}/${{ matrix.app }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.os }}
+          path: |
+            hub-app/dist/*.exe
+            hub-app/dist/*.dmg
+          if-no-files-found: error

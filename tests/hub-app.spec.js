@@ -30,9 +30,13 @@ test.beforeAll(async () => {
   vscodeExtensions = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-vscode-ext-"));
   fs.mkdirSync(path.join(vscodeExtensions, "anthropic.claude-code-1.0.0"));
 
+  // Set PACKAGED_APP to a built app's executable to test that instead of the source.
+  const appToRun = process.env.PACKAGED_APP
+    ? { executablePath: process.env.PACKAGED_APP, args: [] }
+    : { executablePath: require(path.join(HUB_APP, "node_modules", "electron")), args: [HUB_APP] };
+
   app = await _electron.launch({
-    executablePath: require(path.join(HUB_APP, "node_modules", "electron")),
-    args: [HUB_APP],
+    ...appToRun,
     env: {
       ...process.env,
       CLAUDE_CONFIG_DIR: claudeDir,

@@ -32,3 +32,18 @@ cd hub-app
 npm install
 npm start
 ```
+
+## Build the installers
+
+- **Windows**, on a Windows PC: `npm run dist`. The installer lands in `hub-app/dist/HabibiThinks-Setup-<version>.exe`.
+- **Both Windows and Mac**: on GitHub, open **Actions → Build installers → Run workflow**. It builds both installers, tests the built apps on real Windows and Mac machines, and attaches the files to the run (`HabibiThinks-<version>.dmg` for Mac, a universal build for Intel and Apple Silicon).
+
+The installers aren't code-signed yet, so Windows shows a "Windows protected your PC" warning and Mac blocks the app on first open. See the steps for testers below.
+
+### First open on Mac (unsigned build)
+
+1. Open the `.dmg` and drag Habibi Thinks into Applications.
+2. Open Habibi Thinks. Mac says it can't verify the app — click **Done**.
+3. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to Habibi Thinks.
+
+If Mac instead says the app "is damaged", open Terminal and run `xattr -cr "/Applications/Habibi Thinks.app"`, then open it again.
