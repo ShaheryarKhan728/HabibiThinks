@@ -23,3 +23,5 @@ Run the tests (see `tests/README.md`). They must all pass. They also run on Wind
 - Supported: Claude Code in the terminal, the Claude Code extension in VS Code, and claude.ai in Chrome and Edge (English UI only). Not supported: Claude Desktop, Cursor, VSCodium, Arabic claude.ai.
 - Users are non-technical. They download installers from a landing page — they must never need Node.js, npm or a terminal.
 - `hub-app/phrases.json` and `browser-extension/phrases.js` must stay identical (a test checks this).
+- **No internet in the free version.** The hub app blocks all network requests, navigation and permissions, and the extension has no network code and only the claude.ai permission. Keep it that way (see "Locked down" in `hub-app/README.md`). The paid version will allow only its own sign-in server.
+- The hub app's debugger fuse (`enableNodeCliInspectArguments`) is on only for testing. Turn it off before the paid version ships.

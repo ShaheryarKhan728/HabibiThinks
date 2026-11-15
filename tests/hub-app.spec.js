@@ -109,3 +109,72 @@ test("Install Browser Extension opens a web page", async () => {
     .poll(() => app.evaluate(() => globalThis.openedUrl))
     .toMatch(/^https:\/\//);
 });
+
+// The app never needs the internet, so it must refuse to go online at all.
+
+test("the window can't reach the internet", async () => {
+  const result = await window.evaluate(async () => {
+    try {
+      await fetch("https://example.com");
+      return "reached";
+    } catch {
+      return "blocked";
+    }
+  });
+  expect(result).toBe("blocked");
+});
+
+test("the app itself can't reach the internet", async () => {
+  const result = await app.evaluate(async ({ net }) => {
+    try {
+      await net.fetch("https://example.com");
+      return "reached";
+    } catch {
+      return "blocked";
+    }
+  });
+  expect(result).toBe("blocked");
+});
+
+test("the window refuses injected scripts", async () => {
+  const ran = await window.evaluate(async () => {
+    const script = document.createElement("script");
+    script.textContent = "window.injectedScriptRan = true";
+    document.body.append(script);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return window.injectedScriptRan === true;
+  });
+  expect(ran).toBe(false);
+});
+
+test("the window can't navigate away or open new windows", async () => {
+  await window.evaluate(() => {
+    window.location.href = "https://example.com";
+  });
+  await window.waitForTimeout(500);
+  expect(window.url()).toMatch(/^file:.*index\.html$/);
+
+  const opened = await window.evaluate(() => window.open("https://example.com") !== null);
+  expect(opened).toBe(false);
+});
+
+test("the window is refused every permission", async () => {
+  const answer = await window.evaluate(() => Notification.requestPermission());
+  expect(answer).toBe("denied");
+});
+
+test("the built app has its safety switches locked", async () => {
+  test.skip(!process.env.PACKAGED_APP, "Only applies to a built app.");
+  const { getCurrentFuseWire, FuseV1Options } = require("@electron/fuses");
+
+  // On Mac the switches live inside the .app bundle, not the program file.
+  const target = process.env.PACKAGED_APP.replace(/(\.app)\/.*$/, "$1");
+  const fuses = await getCurrentFuseWire(target);
+  const OFF = 48;
+  const ON = 49;
+
+  expect(fuses[FuseV1Options.RunAsNode]).toBe(OFF);
+  expect(fuses[FuseV1Options.EnableNodeOptionsEnvironmentVariable]).toBe(OFF);
+  expect(fuses[FuseV1Options.EnableEmbeddedAsarIntegrityValidation]).toBe(ON);
+  expect(fuses[FuseV1Options.OnlyLoadAppFromAsar]).toBe(ON);
+});

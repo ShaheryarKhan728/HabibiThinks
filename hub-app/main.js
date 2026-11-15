@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const path = require("path");
 const phrases = require("./phrases.json");
 const claudeCode = require("./patchers/claude-code");
@@ -22,12 +22,34 @@ function createWindow() {
     icon: path.join(__dirname, "icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
+
+  // The window must never become a web page or open new windows.
+  win.webContents.on("will-navigate", (event) => event.preventDefault());
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+
   win.loadFile("index.html");
 }
 
-app.whenReady().then(createWindow);
+// The app never needs the internet: cancel every request that isn't for its
+// own local files, and refuse every permission (camera, notifications, ...).
+function lockDown() {
+  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+    const local = details.url.startsWith("file:") || details.url.startsWith("data:");
+    callback({ cancel: !local });
+  });
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
+  session.defaultSession.setPermissionCheckHandler(() => false);
+}
+
+app.whenReady().then(() => {
+  lockDown();
+  createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

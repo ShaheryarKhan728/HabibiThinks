@@ -18,6 +18,18 @@ Desert Gold theme: sand background with a faint eight-point star pattern, gold a
 - `logo.svg` — the dallah logo. `icon.png` is the same logo at 512px, used as the window icon.
 - `fonts/` — Tajawal (regular and bold), bundled so it works offline. Licensed under the SIL Open Font License, see `fonts/OFL.txt`.
 
+## Locked down
+
+The app never needs the internet, so it's built to refuse it:
+
+- **No internet:** every request that isn't for the app's own local files is cancelled (`main.js`), and the page's content security policy (`index.html`) only allows the app's own files — no inline scripts. Styling lives in `style.css` so the policy can stay strict.
+- **No navigation:** the window can't be sent to a website or open new windows. "Install Browser Extension" hands a fixed link to the user's own browser.
+- **No permissions:** camera, microphone, notifications and every other permission are refused.
+- **Safety switches (Electron fuses):** set in `package.json` → `build.electronFuses`. The app can't be run as plain Node.js, ignores `NODE_OPTIONS`, checks its own files on launch, and only loads its packaged files.
+  - **Exception:** `enableNodeCliInspectArguments` (the debugger switch) stays **on** because the Playwright tests use it to drive the built app. Turn it off before the paid version ships, since that version will hold sign-in details.
+
+The tests check all of this, and switching the lockdown off makes them fail.
+
 ## patchers/
 
 - **claude-code.js** — Claude Code in the terminal. Adds or removes `spinnerVerbs` in `~/.claude/settings.json` (or in `CLAUDE_CONFIG_DIR` if set).

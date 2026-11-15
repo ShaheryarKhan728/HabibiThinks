@@ -22,11 +22,20 @@
     "directories": {
       "output": "dist"
     },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": true,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "enableCookieEncryption": true
+    },
     "files": [
       "main.js",
       "preload.js",
       "renderer.js",
       "index.html",
+      "style.css",
       "phrases.json",
       "logo.svg",
       "icon.png",
