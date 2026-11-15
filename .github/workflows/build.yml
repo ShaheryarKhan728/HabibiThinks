@@ -1,7 +1,10 @@
 name: Build installers
 
-# Started by hand from the Actions tab ("Run workflow").
+# Starts when a version tag like v0.1.0 is pushed, or by hand from the
+# Actions tab ("Run workflow") once this file is on main.
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 jobs:

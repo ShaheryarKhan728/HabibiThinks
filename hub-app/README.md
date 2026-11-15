@@ -36,7 +36,7 @@ npm start
 ## Build the installers
 
 - **Windows**, on a Windows PC: `npm run dist`. The installer lands in `hub-app/dist/HabibiThinks-Setup-<version>.exe`.
-- **Both Windows and Mac**: on GitHub, open **Actions → Build installers → Run workflow**. It builds both installers, tests the built apps on real Windows and Mac machines, and attaches the files to the run (`HabibiThinks-<version>.dmg` for Mac, a universal build for Intel and Apple Silicon).
+- **Both Windows and Mac**: push a version tag (e.g. `git tag v0.1.0` then `git push origin v0.1.0`), or once the workflow is on `main`, open **Actions → Build installers → Run workflow**. It builds both installers, tests the built apps on real Windows and Mac machines, and attaches the files to the run (`HabibiThinks-<version>.dmg` for Mac, a universal build for Intel and Apple Silicon).
 
 The installers aren't code-signed yet, so Windows shows a "Windows protected your PC" warning and Mac blocks the app on first open. See the steps for testers below.
 
