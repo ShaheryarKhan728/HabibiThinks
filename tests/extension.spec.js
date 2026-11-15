@@ -85,6 +85,16 @@ test("changes 'Thought for' labels already on the page", async () => {
   await expect(page.locator("#old-thought-for")).toHaveText("Habibi thought for 12s");
 });
 
+test("changes status words in a status block added later", async () => {
+  await page.evaluate(() => {
+    const block = document.createElement("div");
+    block.setAttribute("data-cds", "TurnStatus");
+    block.innerHTML = '<div><span><span id="new-label">Pondering</span></span></div>';
+    document.body.append(block);
+  });
+  await expect(page.locator("#new-label")).toHaveText(OUR_PHRASE);
+});
+
 test("leaves a full summary sentence in the status row alone", async () => {
   await expectUnchanged("label", "Laying out region groupings within latency and residency limits");
 });

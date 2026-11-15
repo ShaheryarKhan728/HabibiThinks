@@ -39,19 +39,30 @@ function walk(node) {
   node.childNodes && node.childNodes.forEach(walk);
 }
 
+// Only walk new content that is, or contains, a status block. Chat text
+// streaming in elsewhere is skipped without being walked.
+function handleAdded(node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    tryReplace(node);
+  } else if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.closest(STATUS_BLOCK)) walk(node);
+    else node.querySelectorAll(STATUS_BLOCK).forEach(walk);
+  }
+}
+
 const observer = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
     if (mutation.type === "characterData") {
       tryReplace(mutation.target);
     } else {
-      mutation.addedNodes.forEach(walk);
+      mutation.addedNodes.forEach(handleAdded);
     }
   }
 });
 
 // Change labels already on the page (e.g. older answers in this chat), then
 // keep watching for new ones.
-walk(document.body);
+document.querySelectorAll(STATUS_BLOCK).forEach(walk);
 observer.observe(document.body, {
   childList: true,
   subtree: true,
