@@ -62,5 +62,6 @@ The installers aren't code-signed yet, so Windows shows a "Windows protected you
 1. Open the `.dmg` and drag Habibi Thinks into Applications.
 2. Open Habibi Thinks. Mac says it can't verify the app — click **Done**.
 3. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to Habibi Thinks.
+4. Open Habibi Thinks again and click **Open Anyway** in the box that appears.
 
-If Mac instead says the app "is damaged", open Terminal and run `xattr -cr "/Applications/Habibi Thinks.app"`, then open it again.
+**Known gap:** some Macs say the app "is damaged" instead. That can only be fixed properly by signing and notarizing the app with an Apple Developer account, which is planned before launch. Users must never be asked to use Terminal, so until then, report it rather than working around it.
