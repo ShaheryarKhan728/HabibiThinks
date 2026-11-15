@@ -12,11 +12,24 @@ async function init() {
 }
 
 toggle.addEventListener("change", async () => {
-  const on = toggle.checked;
-  const problems = on ? await window.habibi.turnOn() : await window.habibi.turnOff();
+  const wanted = toggle.checked;
+  toggle.disabled = true;
+
+  let problems;
+  try {
+    problems = wanted ? await window.habibi.turnOn() : await window.habibi.turnOff();
+  } catch {
+    problems = ["Something went wrong, so nothing was changed."];
+  }
+
+  // Show what's really true now, not just what was asked for.
+  const on = await window.habibi.isOn().catch(() => !wanted);
   showState(on);
-  const text = on ? "Yallah! Habibi Thinks is on." : "Habibi Thinks is off.";
-  message.textContent = [text, ...problems].join("\n");
+  toggle.disabled = false;
+
+  const lines = [];
+  if (on === wanted) lines.push(on ? "Yallah! Habibi Thinks is on." : "Habibi Thinks is off.");
+  message.textContent = [...lines, ...problems].join("\n");
 });
 
 document.getElementById("install-extension").addEventListener("click", () => {

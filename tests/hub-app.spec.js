@@ -152,6 +152,60 @@ test("leaves a settings file with a mistake untouched and says so plainly", asyn
   }
 });
 
+test("shows Off, not On, when switching on failed", async () => {
+  await startWith({ claude: '{ "theme": ', vscode: '{ "editor.fontSize": ' });
+  await flipSwitch();
+
+  await expect(window.locator("#message")).toContainText("Claude Code (terminal): your Claude Code settings file has a mistake");
+  await expect(window.locator("#message")).toContainText("VS Code: your VS Code settings file has a mistake");
+  await expect(window.locator("#message")).not.toContainText("Yallah!");
+  await expect(window.locator("#state")).toHaveText("Off");
+  await expect(window.locator("#toggle")).not.toBeChecked();
+});
+
+test("says so when no Claude app is found", async () => {
+  await startWith();
+  const extension = path.join(vscodeExtensions, "anthropic.claude-code-1.0.0");
+  fs.rmSync(claudeDir, { recursive: true });
+  fs.rmSync(extension, { recursive: true });
+  try {
+    await flipSwitch();
+    await expect(window.locator("#message")).toHaveText(
+      "No Claude app found. Install Claude Code or the VS Code extension first."
+    );
+    await expect(window.locator("#state")).toHaveText("Off");
+  } finally {
+    fs.mkdirSync(claudeDir);
+    fs.mkdirSync(extension);
+  }
+});
+
+test("one app failing to be checked doesn't stop the others", async () => {
+  await startWith();
+  // An extensions "folder" that is really a file makes the VS Code check fail.
+  fs.rmSync(vscodeExtensions, { recursive: true });
+  fs.writeFileSync(vscodeExtensions, "");
+  try {
+    await flipSwitch();
+    await expect(window.locator("#message")).toContainText("Yallah! Habibi Thinks is on.");
+    await expect(window.locator("#message")).toContainText("VS Code: something went wrong, so it was left unchanged.");
+    await expect(window.locator("#state")).toHaveText("On");
+    expect(readSettings(claudeSettings()).spinnerVerbs).toEqual(OURS);
+  } finally {
+    fs.rmSync(vscodeExtensions);
+    fs.mkdirSync(path.join(vscodeExtensions, "anthropic.claude-code-1.0.0"), { recursive: true });
+  }
+});
+
+test("on Mac, clicking the Dock icon brings the window back", async () => {
+  test.skip(process.platform !== "darwin", "Only Mac keeps the app running with no window.");
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].close());
+  const next = app.waitForEvent("window");
+  await app.evaluate(({ app: electronApp }) => electronApp.emit("activate"));
+  window = await next;
+  await expect(window.locator("h1")).toHaveText("Habibi Thinks");
+});
+
 test("Install Browser Extension opens a web page", async () => {
   // Catch the link instead of really opening a browser.
   await app.evaluate(({ shell }) => {
