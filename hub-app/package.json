@@ -10,11 +10,11 @@
     "dist": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^33.0.0",
+    "electron": "^45.3.2",
     "electron-builder": "^26.18.0"
   },
   "allowScripts": {
-    "electron@33.4.11": true
+    "electron@45.3.2": true
   },
   "build": {
     "appId": "com.habibithinks.app",
