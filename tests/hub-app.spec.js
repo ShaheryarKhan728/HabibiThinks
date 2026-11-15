@@ -5,6 +5,11 @@ const path = require("path");
 
 const HUB_APP = path.join(__dirname, "..", "hub-app");
 const PHRASES = require(path.join(HUB_APP, "phrases.json"));
+const { parse } = require(path.join(HUB_APP, "node_modules", "jsonc-parser"));
+
+const OURS = { mode: "replace", verbs: PHRASES };
+const CLAUDE_ORIGINAL = '{\n  "theme": "dark"\n}\n';
+const VSCODE_ORIGINAL = '{\n  "editor.fontSize": 14\n}\n';
 
 let app;
 let window;
@@ -14,19 +19,26 @@ let vscodeExtensions;
 
 const claudeSettings = () => path.join(claudeDir, "settings.json");
 const vscodeSettings = () => path.join(vscodeAppData, "Code", "User", "settings.json");
-const readJson = (file) => JSON.parse(fs.readFileSync(file, "utf8"));
+const claudeState = () => path.join(claudeDir, "habibi-thinks.json");
+const vscodeState = () => path.join(path.dirname(vscodeSettings()), "habibi-thinks.json");
+const readText = (file) => fs.readFileSync(file, "utf8");
+const readSettings = (file) => parse(readText(file), [], { allowTrailingComma: true });
 const flipSwitch = () => window.locator(".switch").click();
 
-test.beforeAll(async () => {
-  // Throwaway Claude and VS Code folders, so the test never touches the real
-  // ones. Each starts with a setting of the user's own, which must survive.
-  claudeDir = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-claude-"));
-  fs.writeFileSync(claudeSettings(), JSON.stringify({ theme: "dark" }));
+// Puts the settings files in a known state and reopens the window.
+async function startWith({ claude = CLAUDE_ORIGINAL, vscode = VSCODE_ORIGINAL } = {}) {
+  fs.writeFileSync(claudeSettings(), claude);
+  fs.writeFileSync(vscodeSettings(), vscode);
+  fs.rmSync(claudeState(), { force: true });
+  fs.rmSync(vscodeState(), { force: true });
+  await window.reload();
+}
 
+test.beforeAll(async () => {
+  // Throwaway Claude and VS Code folders, so the tests never touch the real ones.
+  claudeDir = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-claude-"));
   vscodeAppData = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-vscode-"));
   fs.mkdirSync(path.dirname(vscodeSettings()), { recursive: true });
-  fs.writeFileSync(vscodeSettings(), JSON.stringify({ "editor.fontSize": 14 }));
-
   vscodeExtensions = fs.mkdtempSync(path.join(os.tmpdir(), "habibi-vscode-ext-"));
   fs.mkdirSync(path.join(vscodeExtensions, "anthropic.claude-code-1.0.0"));
 
@@ -55,45 +67,89 @@ test.afterAll(async () => {
 });
 
 test("starts switched off", async () => {
+  await startWith();
   await expect(window.locator("#state")).toHaveText("Off");
   await expect(window.locator("#toggle")).not.toBeChecked();
 });
 
 test("switching on writes the phrases and keeps other settings", async () => {
+  await startWith();
   await flipSwitch();
   await expect(window.locator("#message")).toHaveText("Yallah! Habibi Thinks is on.");
   await expect(window.locator("#state")).toHaveText("On");
 
-  const expected = { mode: "replace", verbs: PHRASES };
-  expect(readJson(claudeSettings())).toEqual({ theme: "dark", spinnerVerbs: expected });
-  expect(readJson(vscodeSettings())).toEqual({
-    "editor.fontSize": 14,
-    "claudeCode.spinnerVerbs": expected,
-  });
+  expect(readSettings(claudeSettings())).toEqual({ theme: "dark", spinnerVerbs: OURS });
+  expect(readSettings(vscodeSettings())).toEqual({ "editor.fontSize": 14, "claudeCode.spinnerVerbs": OURS });
+
+  // Files are written through a temp file, which must not be left behind.
+  const leftovers = [...fs.readdirSync(claudeDir), ...fs.readdirSync(path.dirname(vscodeSettings()))];
+  expect(leftovers.filter((name) => name.includes("habibi-tmp"))).toEqual([]);
 });
 
 test("shows On again when the app reopens", async () => {
+  await startWith();
+  await flipSwitch();
+  await expect(window.locator("#state")).toHaveText("On");
+
   await window.reload();
   await expect(window.locator("#state")).toHaveText("On");
   await expect(window.locator("#toggle")).toBeChecked();
 });
 
-test("switching off removes the phrases and keeps other settings", async () => {
+test("switching off puts the files back exactly as they were", async () => {
+  await startWith();
+  await flipSwitch();
+  await expect(window.locator("#state")).toHaveText("On");
   await flipSwitch();
   await expect(window.locator("#message")).toHaveText("Habibi Thinks is off.");
   await expect(window.locator("#state")).toHaveText("Off");
 
-  expect(readJson(claudeSettings())).toEqual({ theme: "dark" });
-  expect(readJson(vscodeSettings())).toEqual({ "editor.fontSize": 14 });
+  expect(readText(claudeSettings())).toBe(CLAUDE_ORIGINAL);
+  expect(readText(vscodeSettings())).toBe(VSCODE_ORIGINAL);
+  expect(fs.existsSync(claudeState())).toBe(false);
+  expect(fs.existsSync(vscodeState())).toBe(false);
 });
 
-test("leaves a VS Code settings file with comments untouched", async () => {
-  const withComments = '{\n  // my comment\n  "editor.fontSize": 14\n}\n';
-  fs.writeFileSync(vscodeSettings(), withComments);
+test("keeps comments, trailing commas and indentation in VS Code settings", async () => {
+  const commented = '{\n    // my comment\n    "editor.fontSize": 14,\n}\n';
+  await startWith({ vscode: commented });
 
   await flipSwitch();
-  await expect(window.locator("#message")).toContainText("VS Code: your VS Code settings file has comments");
-  expect(fs.readFileSync(vscodeSettings(), "utf8")).toBe(withComments);
+  await expect(window.locator("#message")).toHaveText("Yallah! Habibi Thinks is on.");
+  expect(readText(vscodeSettings())).toContain("    // my comment");
+  expect(readSettings(vscodeSettings())["claudeCode.spinnerVerbs"]).toEqual(OURS);
+
+  await flipSwitch();
+  await expect(window.locator("#state")).toHaveText("Off");
+  expect(readText(vscodeSettings())).toBe(commented);
+});
+
+test("puts back the user's own loading words when switched off", async () => {
+  const own = { mode: "append", verbs: ["My own word"] };
+  await startWith({ claude: JSON.stringify({ theme: "dark", spinnerVerbs: own }, null, 2) + "\n" });
+
+  // The user's own words aren't ours, so the switch shows Off.
+  await expect(window.locator("#state")).toHaveText("Off");
+
+  await flipSwitch();
+  await expect(window.locator("#state")).toHaveText("On");
+  expect(readSettings(claudeSettings()).spinnerVerbs).toEqual(OURS);
+
+  await flipSwitch();
+  await expect(window.locator("#state")).toHaveText("Off");
+  expect(readSettings(claudeSettings())).toEqual({ theme: "dark", spinnerVerbs: own });
+  expect(fs.existsSync(claudeState())).toBe(false);
+});
+
+test("leaves a settings file with a mistake untouched and says so plainly", async () => {
+  for (const broken of ['{ "theme": ', "null"]) {
+    await startWith({ claude: broken });
+    await flipSwitch();
+    await expect(window.locator("#message")).toContainText(
+      "Claude Code (terminal): your Claude Code settings file has a mistake in it, so Habibi Thinks didn't change it."
+    );
+    expect(readText(claudeSettings())).toBe(broken);
+  }
 });
 
 test("Install Browser Extension opens a web page", async () => {

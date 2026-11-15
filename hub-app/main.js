@@ -3,6 +3,7 @@ const path = require("path");
 const phrases = require("./phrases.json");
 const claudeCode = require("./patchers/claude-code");
 const vscode = require("./patchers/vscode");
+const { SettingsProblem } = require("./patchers/settings-file");
 
 const TARGETS = [
   { name: "Claude Code (terminal)", patcher: claudeCode },
@@ -59,7 +60,7 @@ app.on("window-all-closed", () => {
 function isOn() {
   return TARGETS.some(({ patcher }) => {
     try {
-      return patcher.isInstalled() && patcher.isOn();
+      return patcher.isInstalled() && patcher.isOn(phrases);
     } catch {
       return false;
     }
@@ -74,7 +75,9 @@ function runOnAll(action) {
     try {
       action(patcher);
     } catch (error) {
-      problems.push(`${name}: ${error.message}`);
+      const message =
+        error instanceof SettingsProblem ? error.message : "something went wrong, so it was left unchanged.";
+      problems.push(`${name}: ${message}`);
     }
   }
   return problems;
@@ -84,7 +87,7 @@ ipcMain.handle("is-on", () => isOn());
 
 ipcMain.handle("turn-on", () => runOnAll((patcher) => patcher.turnOn(phrases)));
 
-ipcMain.handle("turn-off", () => runOnAll((patcher) => patcher.turnOff()));
+ipcMain.handle("turn-off", () => runOnAll((patcher) => patcher.turnOff(phrases)));
 
 ipcMain.handle("open-extension-page", () => {
   shell.openExternal(EXTENSION_STORE_URL);

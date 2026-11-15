@@ -61,5 +61,8 @@
       "category": "public.app-category.utilities",
       "artifactName": "HabibiThinks-${version}.${ext}"
     }
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
   }
 }

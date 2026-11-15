@@ -32,10 +32,15 @@ The tests check all of this, and switching the lockdown off makes them fail.
 
 ## patchers/
 
-- **claude-code.js** — Claude Code in the terminal. Adds or removes `spinnerVerbs` in `~/.claude/settings.json` (or in `CLAUDE_CONFIG_DIR` if set).
-- **vscode.js** — the Claude Code extension in VS Code. It ignores `~/.claude/settings.json` and reads its own `claudeCode.spinnerVerbs` setting, so this adds or removes that in VS Code's user `settings.json`. If that file has comments, it's left untouched (rewriting it would delete them) and the app says to change it by hand.
+- **claude-code.js** — Claude Code in the terminal. Sets or removes `spinnerVerbs` in `~/.claude/settings.json` (or in `CLAUDE_CONFIG_DIR` if set).
+- **vscode.js** — the Claude Code extension in VS Code. It ignores `~/.claude/settings.json` and reads its own `claudeCode.spinnerVerbs` setting, so this sets or removes that in VS Code's user `settings.json`.
+- **settings-file.js** — the shared part that safely edits one settings file:
+  - Only our one setting changes. Comments, trailing commas, indentation and everything else stay exactly as they were (it uses `jsonc-parser`, the library VS Code itself uses).
+  - Files are written to a temp file first and then swapped in, so a crash can't leave a half-written settings file.
+  - If the user already had their own loading words, they're saved in `habibi-thinks.json` next to the settings file and put back on switch off.
+  - A settings file with a mistake in it is left untouched, and the app says so in plain words.
 
-Neither touches any app files — only those settings entries, keeping everything else in the file as it was.
+Neither patcher touches any app files — only that one setting.
 
 ## Run it
 
