@@ -1,0 +1,70 @@
+// Changes the short status words claude.ai shows while Claude thinks, like
+// "Weighing" or "Revisiting", to a Habibi phrase, and "Thought for 3m 25s"
+// to "Habibi thought for 3m 25s". Only text inside claude.ai's thinking
+// status block (data-cds="TurnStatus") is touched — the full-sentence
+// thinking summaries and all chat text are left alone.
+
+const STATUS_BLOCK = '[data-cds="TurnStatus"]';
+const SHORT_LABEL = /^[A-Z][a-z-]*ing(\.{3}|…)?$/;
+const THOUGHT_FOR = /^Thought for (.+)$/;
+
+function pickPhrase() {
+  return PHRASES[Math.floor(Math.random() * PHRASES.length)];
+}
+
+function tryReplace(node) {
+  if (!node || node.nodeType !== Node.TEXT_NODE) return;
+  const parent = node.parentElement;
+  if (!parent || !parent.closest(STATUS_BLOCK)) return;
+
+  const text = node.textContent.trim();
+
+  const thought = text.match(THOUGHT_FOR);
+  if (thought) {
+    node.textContent = `Habibi thought for ${thought[1]}`;
+    return;
+  }
+
+  const label = text.match(SHORT_LABEL);
+  if (label) {
+    node.textContent = `${pickPhrase()}${label[1] || "…"}`;
+  }
+}
+
+function walk(node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    tryReplace(node);
+    return;
+  }
+  node.childNodes && node.childNodes.forEach(walk);
+}
+
+// Only walk new content that is, or contains, a status block. Chat text
+// streaming in elsewhere is skipped without being walked.
+function handleAdded(node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    tryReplace(node);
+  } else if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.closest(STATUS_BLOCK)) walk(node);
+    else node.querySelectorAll(STATUS_BLOCK).forEach(walk);
+  }
+}
+
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    if (mutation.type === "characterData") {
+      tryReplace(mutation.target);
+    } else {
+      mutation.addedNodes.forEach(handleAdded);
+    }
+  }
+});
+
+// Change labels already on the page (e.g. older answers in this chat), then
+// keep watching for new ones.
+document.querySelectorAll(STATUS_BLOCK).forEach(walk);
+observer.observe(document.body, {
+  childList: true,
+  subtree: true,
+  characterData: true,
+});

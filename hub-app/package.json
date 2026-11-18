@@ -1,0 +1,68 @@
+{
+  "name": "habibi-thinks-hub",
+  "version": "0.1.2",
+  "description": "The one app you install for Habibi Thinks.",
+  "author": "Habibi Thinks",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0"
+  },
+  "allowScripts": {
+    "electron@45.3.2": true
+  },
+  "build": {
+    "appId": "com.habibithinks.app",
+    "productName": "Habibi Thinks",
+    "directories": {
+      "output": "dist"
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": true,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "enableCookieEncryption": true
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "phrases.json",
+      "logo.svg",
+      "icon.png",
+      "fonts/**",
+      "patchers/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png",
+      "artifactName": "HabibiThinks-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "shortcutName": "Habibi Thinks"
+    },
+    "mac": {
+      "target": {
+        "target": "dmg",
+        "arch": "universal"
+      },
+      "icon": "icon.png",
+      "identity": "-",
+      "category": "public.app-category.utilities",
+      "artifactName": "HabibiThinks-${version}.${ext}"
+    }
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.3.1"
+  }
+}
